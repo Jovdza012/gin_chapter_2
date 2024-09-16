@@ -1,0 +1,121 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "http"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a sample recipes API. You can find out more about the API at https://github.com/PacktPublishing/BuildingDistributed-Applications-in-Gin.",
+    "title": "Recipes API",
+    "contact": {
+      "name": "Jovan Milanovic",
+      "email": "milanovic97jovan@gmail.com"
+    },
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "paths": {
+    "/recipes": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "recipes"
+        ],
+        "summary": "Returns a list of recipes",
+        "operationId": "listRecipes"
+      },
+      "post": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "recipes"
+        ],
+        "summary": "Creates a new recipe",
+        "operationId": "createRecipe",
+        "parameters": [
+          {
+            "$ref": "#/definitions/Recipe",
+            "description": "Recipe to be created",
+            "name": "recipe",
+            "in": "body",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/recipes/search": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "recipes"
+        ],
+        "summary": "Searches for recipes by tag",
+        "operationId": "searchRecipes",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Tag to search for",
+            "name": "tag",
+            "in": "query",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/recipes/{id}": {
+      "put": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "recipes"
+        ],
+        "summary": "Updates an existing recipe",
+        "operationId": "updateRecipe",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the recipe to update",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "$ref": "#/definitions/Recipe",
+            "description": "Updated recipe information",
+            "name": "recipe",
+            "in": "body",
+            "required": true
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "recipes"
+        ],
+        "summary": "Deletes an existing recipe",
+        "operationId": "deleteRecipe",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "ID of the recipe to delete",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ]
+      }
+    }
+  }
+}
