@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -112,7 +113,9 @@ func (handler *AuthHandler) RefreshHandler(c *gin.Context) {
 
 func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	var user models.User
+
 	if err := c.ShouldBindJSON(&user); err != nil {
+		log.Printf("JSON Binding Error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -121,18 +124,26 @@ func (handler *AuthHandler) SignInHandler(c *gin.Context) {
 	hashedPassword := sha256.Sum256([]byte(user.Password))
 	hashedPasswordStr := hex.EncodeToString(hashedPassword[:])
 
+	// Log the MongoDB query
+	log.Printf("Attempting to find user with username: %s", user.Username)
+
 	// Find the user by username and compare hashed passwords
 	cur := handler.collection.FindOne(handler.ctx, bson.M{
 		"username": user.Username,
 		"password": hashedPasswordStr, // compare the hashed password
 	})
+
+	// Log detailed error if query fails
 	if cur.Err() != nil {
+		log.Printf("MongoDB Error during FindOne: %v", cur.Err())
+
 		if cur.Err() == mongo.ErrNoDocuments {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 			return
 		}
-		// Handle other possible errors from MongoDB
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+
+		// Log internal server error with detailed message for debugging
+		c.JSON(http.StatusInternalServerError, gin.H{"error": cur.Err().Error()})
 		return
 	}
 

@@ -21,7 +21,9 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	redisStore "github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
@@ -58,7 +60,7 @@ func init() {
 	collection := client.Database(os.Getenv("MONGO_DATABASE")).Collection("recipes")
 
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		Addr:     "redis-cache:6379",
 		Password: "",
 		DB:       0,
 	})
@@ -77,8 +79,17 @@ func init() {
 
 func main() {
 	router := gin.Default()
-	store, _ := redisStore.NewStore(10, "tcp", "localhost:6379", "", []byte("secret"))
+
+	store, _ := redisStore.NewStore(10, "tcp", "redis-cache:6379", "", []byte("secret"))
 	router.Use(sessions.Sessions("recipes_api", store))
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "OPTIONS"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 	authorized := router.Group("/")
 	authorized.Use(authHandler.AuthMiddleware())
 	{
@@ -91,5 +102,5 @@ func main() {
 	router.POST("/signin", authHandler.SignInHandler)
 	router.POST("/signout", authHandler.SignOutHandler)
 
-	router.Run()
+	router.RunTLS(":443", "/app/certs/localhost.crt", "/app/certs/localhost.key")
 }

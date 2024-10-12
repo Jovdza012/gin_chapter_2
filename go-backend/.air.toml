@@ -1,0 +1,16 @@
+# .air.toml
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ."
+  bin = "./tmp/main"
+  full_bin = "APP_ENV=dev ./tmp/main"
+
+[log]
+  level = "debug"
+
+[watch]
+  includes = ["."]
+  excludes = ["tmp", "vendor", ".git", "node_modules"]
+  delay = 1000

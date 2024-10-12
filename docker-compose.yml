@@ -1,8 +1,7 @@
 version: '3.8'
-
 services:
   mongodb:
-    build: .
+    image: mongo:latest
     container_name: mongodb-gin-book
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME:-admin}
@@ -22,6 +21,42 @@ services:
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    restart: unless-stopped
+
+  go:
+    build: ./go-backend
+    container_name: go-server
+    env_file:
+      - /home/ivan/jova_repos/gin_chapter_2/go-backend/.env
+    environment:
+      - MONGO_URI=mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@mongodb-gin-book:27017
+      - REDIS_URL=redis://redis-cache:6379
+    ports:
+      - "8080:8080"
+      - "443:443"
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - ./certs:/app/certs
+      - ./go-backend:/app  # Mount source code
+      - /app/tmp  # Optional: Air requires a tmp directory
+    restart: unless-stopped
+
+  react:
+    build: ./react-frontend
+    container_name: react-app
+    env_file:
+      - ./react-frontend/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - go
+    volumes:
+      - ./react-frontend:/usr/src/app  # Mount the source code for development
+    stdin_open: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true  # Enable hot-reloading with polling (good for Docker + host systems like Mac/Windows)
     restart: unless-stopped
 
 volumes:
